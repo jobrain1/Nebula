@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nebula - Mindmap Editor</title>
+    <meta name="description"
+        content="Create stunning, professional mindmaps with MindFlow. Simple, fast, and beautiful mindmapping tool with PDF export and dark mode.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- PDF Export Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <link rel="icon" type="image/png" href="Assets/Logo_Icon_Transparent_bg.png.png.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="dark-theme">
+    <div id="app">
+        <!-- Sidebar / Toolbar -->
+        <aside class="toolbar glass">
+            <div class="logo">
+                <img src="Assets/Logo_Icon_Transparent_bg.png.png.png" alt="Nebula Logo" class="logo-img logo-dark">
+                <img src="Assets/Logo_Icon_Transparent_bg_black.png" alt="Nebula Logo" class="logo-img logo-light">
+            </div>
+
+            <nav class="tool-group">
+                <button id="add-node" class="tool-btn" title="Add Node (A)">
+                    <i data-lucide="plus"></i>
+                </button>
+                <button id="save-ola" class="tool-btn" title="Save Mindmap (.neb)">
+                    <i data-lucide="save"></i>
+                </button>
+                <button id="import-ola" class="tool-btn" title="Open Mindmap (.neb)">
+                    <i data-lucide="file-up"></i>
+                </button>
+                <button id="export-pdf" class="tool-btn" title="Export PDF">
+                    <i data-lucide="file-type-2"></i>
+                </button>
+                <button id="clear-canvas" class="tool-btn" title="Clear All">
+                    <i data-lucide="trash-2"></i>
+                </button>
+            </nav>
+
+            <div class="spacer"></div>
+
+            <nav class="tool-group bottom">
+                <button id="theme-toggle" class="tool-btn" title="Toggle Theme">
+                    <i data-lucide="sun" class="sun-icon"></i>
+                    <i data-lucide="moon" class="moon-icon"></i>
+                </button>
+                <button id="help-btn" class="tool-btn" title="Keyboard Shortcuts">
+                    <i data-lucide="help-circle"></i>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <img src="Assets/Logo_Text_Transparent_bg.png.png" alt="Nebula" class="sidebar-text-logo">
+            </div>
+        </aside>
+
+        <!-- Canvas Area -->
+        <main id="canvas-container">
+            <div id="mindmap-canvas">
+                <svg id="svg-connections"></svg>
+                <div id="nodes-layer"></div>
+            </div>
+
+            <!-- Controls Overlay -->
+            <div class="canvas-controls glass">
+                <button id="zoom-in" title="Zoom In"><i data-lucide="zoom-in"></i></button>
+                <span id="zoom-level">100%</span>
+                <button id="zoom-out" title="Zoom Out"><i data-lucide="zoom-out"></i></button>
+                <button id="reset-view" title="Reset View"><i data-lucide="maximize"></i></button>
+            </div>
+
+            <!-- Context Hint -->
+            <div class="hint-overlay">
+                Double-click to edit · Drag to move · Delete to remove
+            </div>
+        </main>
+
+        <!-- Context Menu -->
+        <div id="context-menu" class="context-menu glass hidden">
+            <button id="cm-add"><i data-lucide="plus"></i> Add Child</button>
+            <button id="cm-edit"><i data-lucide="edit-3"></i> Edit Node</button>
+            <button id="cm-image"><i data-lucide="image"></i> Add Image</button>
+            <div class="cm-divider"></div>
+            <div class="cm-colors">
+                <button class="cm-color" style="background: #A393BF" data-color="#A393BF"></button>
+                <button class="cm-color" style="background: #73648A" data-color="#73648A"></button>
+                <button class="cm-color" style="background: #453750" data-color="#453750"></button>
+            </div>
+            <div class="cm-divider"></div>
+            <button id="cm-delete" class="danger"><i data-lucide="trash"></i> Delete Node</button>
+        </div>
+
+        <input type="file" id="image-input" accept="image/*" style="display: none;">
+
+        <!-- Help Modal -->
+        <div id="help-modal" class="modal-overlay hidden">
+            <div class="modal-content glass">
+                <button class="close-modal"><i data-lucide="x"></i></button>
+                <img src="Assets/Logo_Full_Transparent_bg.png.png.png" alt="Nebula Full Logo" class="modal-logo">
+                <h2>Keyboard Shortcuts</h2>
+                <div class="shortcuts-grid">
+                    <div class="shortcut-item"><kbd>A</kbd> / <kbd>N</kbd> <span>Add Child Node</span></div>
+                    <div class="shortcut-item"><kbd>Del</kbd> / <kbd>Back</kbd> <span>Delete Node</span></div>
+                    <div class="shortcut-item"><kbd>Ctrl</kbd> + <kbd>S</kbd> <span>Save Mindmap</span></div>
+                    <div class="shortcut-item"><kbd>Ctrl</kbd> + <kbd>C</kbd> <span>Center View</span></div>
+                    <div class="shortcut-item"><kbd>Esc</kbd> <span>Deselect / Cancel</span></div>
+                </div>
+                <div class="modal-footer">
+                    <p>Nebula v1.0 · Professional Mindmapping</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="script.js"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
