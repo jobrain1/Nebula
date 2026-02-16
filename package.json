@@ -11,8 +11,8 @@
   "author": "Nebula Team",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^25.7.0",
-    "electron-builder": "^24.6.4",
+    "electron": "^40.4.1",
+    "electron-builder": "^26.7.0",
     "png-to-ico": "^3.0.1"
   },
   "build": {

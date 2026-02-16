@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nebula Quick Entry</title>
+    <style>
+        :root {
+            /* Modern Palette - Deep Space & Nebulas */
+            --bg-glass: rgba(28, 28, 33, 0.95);
+            --border-color: #3f3f4e;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0b0;
+            --accent-primary: #8b5cf6;
+            --font-main: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            font-family: var(--font-main);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            width: 100%;
+            height: 60px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .icon {
+            color: var(--text-secondary);
+            margin-right: 16px;
+            display: flex;
+            align-items: center;
+        }
+
+        input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-size: 18px;
+            font-family: var(--font-main);
+            font-weight: 400;
+        }
+
+        input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.6;
+        }
+
+        .badge {
+            background: rgba(255,255,255,0.08);
+            color: var(--text-secondary);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            margin-left: 12px;
+            font-weight: 500;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="16"></line>
+                <line x1="8" y1="12" x2="16" y2="12"></line>
+            </svg>
+        </div>
+        <input type="text" id="quick-input" placeholder="Create mindmap node..." autofocus>
+        <div class="badge">↵ Enter</div>
+    </div>
+
+    <script>
+        const input = document.getElementById('quick-input');
+        const container = document.querySelector('.container');
+
+        // Debug check
+        if (!window.electronAPI) {
+            container.style.borderColor = '#ff4444';
+            input.placeholder = "Error: API not connected";
+            console.error("electronAPI is missing");
+        }
+
+        // Focus input when window is shown
+        window.addEventListener('focus', () => {
+            input.focus();
+            input.select();
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && input.value.trim()) {
+                try {
+                    if (window.electronAPI) {
+                        window.electronAPI.send('quick-entry-submit', input.value.trim());
+                        input.value = '';
+                    } else {
+                        alert("API Error: Cannot send command");
+                    }
+                } catch (err) {
+                    alert("Error sending: " + err.message);
+                }
+            } else if (e.key === 'Escape') {
+                if (window.electronAPI) {
+                    window.electronAPI.send('close-quick-entry');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

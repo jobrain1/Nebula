@@ -40,7 +40,7 @@ class MindFlow {
         this.handleOSLaunch();
     }
 
-    handleOSLaunch() {
+    async handleOSLaunch() {
         // 1. PWA Launch Queue
         if ('launchQueue' in window) {
             window.launchQueue.setConsumer((launchParams) => {
@@ -50,59 +50,47 @@ class MindFlow {
             });
         }
 
-        // 2. Nativefier / Electron Argument Polling
-        // Some Nativefier versions delay argument population
-        const checkArgs = () => {
+        // 2. Electron secure file handling
+        if (window.electronAPI) {
             try {
-                const nw = window.require ? window.require('nw.gui') : null; // Check NW.js if applicable
-                const remote = window.require ? window.require('@electron/remote') : null;
-                const process = window.process || (remote ? remote.process : null);
-
-                if (process && process.argv) {
-                    console.log("Checking arguments:", process.argv);
-                    const filePath = process.argv.find(arg =>
-                        arg.toLowerCase().endsWith('.neb') ||
-                        (arg.includes('.neb') && !arg.includes('--'))
-                    );
-
-                    if (filePath) {
-                        const fs = window.require('fs');
-                        const cleanPath = filePath.replace(/^"(.*)"$/, '$1').trim();
-                        if (fs.existsSync(cleanPath)) {
-                            const data = fs.readFileSync(cleanPath, 'utf8');
-                            this.loadMindmapData(JSON.parse(data));
-                            return; // Success
-                        }
-                    }
-                }
-
-                if (window.LAUNCH_FILE_PATH) {
-                    const fs = window.require('fs');
-                    const cleanPath = window.LAUNCH_FILE_PATH.replace(/^"(.*)"$/, '$1').trim();
-                    if (fs.existsSync(cleanPath)) {
-                        const data = fs.readFileSync(cleanPath, 'utf8');
+                // Check command line arguments
+                const args = await window.electronAPI.getProcessArgv();
+                const filePath = args.find(arg => arg.toLowerCase().endsWith('.neb'));
+                
+                if (filePath) {
+                    const exists = await window.electronAPI.existsSync(filePath);
+                    if (exists) {
+                        const data = await window.electronAPI.readFile(filePath);
                         this.loadMindmapData(JSON.parse(data));
-                        window.LAUNCH_FILE_PATH = null;
+                        return;
                     }
                 }
+
+                // Listen for file open events from main process
+                window.electronAPI.on('open-file', (data) => {
+                    this.loadMindmapData(data);
+                });
+
+                // Listen for quick entry events
+                window.electronAPI.on('create-from-quick-entry', (text) => {
+                    this.addNodeFromQuickEntry(text);
+                });
+
+                // Listen for new map creation
+                window.electronAPI.on('create-new-map', (topic) => {
+                    this.nodes = [];
+                    this.renderedNodes.forEach(el => el.remove());
+                    this.renderedNodes.clear();
+                    this.addNode(topic, 5000, 5000, null, true);
+                    this.centerView();
+                });
+
             } catch (e) {
-                console.error("OS launch check error:", e);
+                console.error("Electron file handling error:", e);
             }
-        };
-
-        // Check immediately and then after a short delay
-        checkArgs();
-        setTimeout(checkArgs, 1000);
-        setTimeout(checkArgs, 3000);
-
-        // 4. Electron IPC Handler
-        try {
-            const { ipcRenderer } = window.require('electron');
-            ipcRenderer.on('open-file', (event, data) => {
-                this.loadMindmapData(data);
-            });
-        } catch (e) {
-            console.log("Not running in Electron, IPC skipped.");
+        } else {
+            // Fallback for web version
+            console.log("Running in web mode, file argument handling skipped.");
         }
     }
 
@@ -302,6 +290,30 @@ class MindFlow {
                 }
             };
         });
+    }
+
+    addNodeFromQuickEntry(text) {
+        if (!text) return;
+
+        // If no nodes exist, create root
+        if (this.nodes.length === 0) {
+            this.addNode(text, 5000, 5000, null, true);
+            return;
+        }
+
+        const parentId = this.selectedNodeId || this.nodes[0].id;
+        const parent = this.nodes.find(n => n.id === parentId);
+
+        if (!parent) return;
+
+        // Smart positioning - find a spot with less clutter?
+        // For now, use the random angle approach but maybe slightly further out
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 200; // Slightly further than default 180
+        const x = parent.x + Math.cos(angle) * distance;
+        const y = parent.y + Math.sin(angle) * distance;
+
+        this.addNode(text, x, y, parent.id);
     }
 
     addNode(text, x, y, parentId = null, isRoot = false) {
