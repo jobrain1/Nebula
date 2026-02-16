@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nebula | Minimalist Mind Mapping for Windows</title>
+    <meta name="description"
+        content="Nebula is a lightweight, free mind mapping software for Windows. Organize your thoughts with a sleek dark-mode interface and custom .neb files.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#8b5cf6',
+                        'primary-content': '#ffffff',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --bg-color: #030303;
+            --primary: #8b5cf6;
+            --primary-light: #c084fc;
+            --border: rgba(255, 255, 255, 0.08);
+            --font: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: #f8fafc;
+            font-family: var(--font);
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Nav logic */
+        .navbar-custom {
+            backdrop-filter: blur(12px);
+            background: rgba(3, 3, 3, 0.8);
+            border-bottom: 1px solid var(--border);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        /* Hero mindmap viz */
+        .mockup-frame {
+            background: #0a0a0c;
+            border: 1px solid var(--border);
+            border-radius: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            aspect-ratio: 4/3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mindmap-viz {
+            position: relative;
+            width: 80%;
+            height: 80%;
+        }
+
+        .node {
+            background: var(--primary);
+            padding: 10px 20px;
+            border-radius: 12px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+            z-index: 10;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .branch {
+            border: 1px solid var(--primary);
+            padding: 6px 14px;
+            border-radius: 8px;
+            position: absolute;
+            font-size: 0.75rem;
+            animation: float 6s ease-in-out infinite;
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .b1 {
+            top: 20%;
+            left: 0%;
+            animation-delay: 0s;
+        }
+
+        .b2 {
+            top: 25%;
+            left: 75%;
+            animation-delay: 1s;
+        }
+
+        .b3 {
+            top: 75%;
+            left: 40%;
+            animation-delay: 2s;
+        }
+
+        .line {
+            position: absolute;
+            background: var(--primary);
+            height: 1px;
+            opacity: 0.2;
+            z-index: 1;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .feature-card {
+            background: #0a0a0c;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2rem;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary);
+            background: #111114;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 2rem;
+            border-left: 2px solid var(--primary);
+            margin-bottom: 2rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -9px;
+            top: 5px;
+            width: 16px;
+            height: 16px;
+            background: var(--primary);
+            border-radius: 50%;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar-custom py-4 px-6">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-primary rounded-lg shadow-[0_0_15px_rgba(139,92,246,0.5)]"></div>
+                <span class="text-xl font-bold text-white tracking-tight">Nebula</span>
+            </div>
+            <div class="hidden md:flex items-center gap-8 text-sm font-medium opacity-70">
+                <a href="#features" class="hover:text-primary transition-colors">Features</a>
+                <a href="#roadmap" class="hover:text-primary transition-colors">Roadmap</a>
+                <a href="#request" class="hover:text-primary transition-colors">Request</a>
+                <a href="https://github.com/jobrain1/Nebula/releases/tag/v.0.0.1"
+                    class="btn btn-primary btn-sm rounded-lg">Beta 0.0.1</a>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="min-h-screen pt-32 pb-20 flex items-center">
+            <div class="max-w-7xl mx-auto px-6 w-full grid lg:grid-cols-2 gap-16 items-center">
+                <div class="text-center lg:text-left">
+                    <div
+                        class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/20 bg-primary/5 text-primary-light text-xs font-bold mb-8">
+                        <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                        Windows Native • Free Forever
+                    </div>
+                    <h1 class="text-5xl lg:text-7xl font-bold tracking-tight text-white mb-6 leading-[1.1]">
+                        Organize your thoughts <br>
+                        <span class="gradient-text">in the Nebula.</span>
+                    </h1>
+                    <p class="text-lg lg:text-xl opacity-60 max-w-xl mb-12 mx-auto lg:mx-0">
+                        A lightweight Mind Mapping tool designed for clarity. No bloat, just your ideas floating in a
+                        beautiful dark interface.
+                    </p>
+
+                    <div class="bg-white/5 border border-white/10 rounded-3xl p-8 mb-12 inline-block backdrop-blur-xl">
+                        <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-primary-light mb-6">v0.1.0
+                            Arrival In:</p>
+                        <div class="flex gap-8 justify-center">
+                            <div class="flex flex-col items-center">
+                                <span class="countdown font-mono text-4xl text-white">
+                                    <span id="days" style="--value:20;"></span>
+                                </span>
+                                <span class="text-[9px] uppercase tracking-widest opacity-40 mt-3">days</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <span class="countdown font-mono text-4xl text-white">
+                                    <span id="hours" style="--value:0;"></span>
+                                </span>
+                                <span class="text-[9px] uppercase tracking-widest opacity-40 mt-3">hours</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <span class="countdown font-mono text-4xl text-white">
+                                    <span id="minutes" style="--value:0;"></span>
+                                </span>
+                                <span class="text-[9px] uppercase tracking-widest opacity-40 mt-3">min</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <span class="countdown font-mono text-4xl text-white">
+                                    <span id="seconds" style="--value:0;"></span>
+                                </span>
+                                <span class="text-[9px] uppercase tracking-widest opacity-40 mt-3">sec</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row items-center gap-6 justify-center lg:justify-start">
+                        <a href="https://github.com/jobrain1/Nebula/releases/tag/v.0.0.1"
+                            class="btn btn-primary btn-lg rounded-2xl px-12 h-16 text-lg hover:scale-105 transition-transform">Download
+                            v.0.0.1 [Beta]</a>
+                        <div
+                            class="text-left opacity-40 border-l border-white/10 pl-6 h-10 flex flex-col justify-center">
+                            <p class="text-[10px] font-bold uppercase tracking-widest">Version 0.0.1</p>
+                            <p class="text-[9px]">Windows 10/11 Architecture</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative group">
+                    <div
+                        class="absolute -inset-4 bg-primary/20 blur-3xl rounded-full opacity-20 group-hover:opacity-30 transition-opacity">
+                    </div>
+                    <div class="mockup-frame">
+                        <div class="mindmap-viz">
+                            <div class="node">Nebula</div>
+                            <div class="branch b1">Ideas</div>
+                            <div class="branch b2">Design</div>
+                            <div class="branch b3">Logic</div>
+                            <!-- Simple connecting lines could be added here if needed -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats -->
+        <section class="py-20 border-y border-white/5 bg-white/[0.01]">
+            <div class="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
+                <div>
+                    <h3 class="text-3xl font-bold text-primary-light mb-1">0.0.1</h3>
+                    <p class="text-[10px] uppercase tracking-[0.2em] opacity-40 font-bold">Beta Phase</p>
+                </div>
+                <div>
+                    <h3 class="text-3xl font-bold text-primary-light mb-1">100%</h3>
+                    <p class="text-[10px] uppercase tracking-[0.2em] opacity-40 font-bold">Privacy First</p>
+                </div>
+                <div>
+                    <h3 class="text-3xl font-bold text-primary-light mb-1">0ms</h3>
+                    <p class="text-[10px] uppercase tracking-[0.2em] opacity-40 font-bold">Cloud Latency</p>
+                </div>
+                <div>
+                    <h3 class="text-3xl font-bold text-primary-light mb-1">$0</h3>
+                    <p class="text-[10px] uppercase tracking-[0.2em] opacity-40 font-bold">Free Forever</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features -->
+        <section id="features" class="py-32">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="text-center max-w-2xl mx-auto mb-20">
+                    <h2 class="text-4xl lg:text-5xl font-bold text-white mb-6">Designed for Focus.</h2>
+                    <p class="text-lg opacity-60">
+                        We removed the complexity so you can focus on what matters most: your thoughts.
+                    </p>
+                </div>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="feature-card lg:col-span-2">
+                        <div class="text-4xl mb-6">🚀</div>
+                        <h3 class="text-2xl font-bold text-white mb-4">Native Performance</h3>
+                        <p class="opacity-60 leading-relaxed">
+                            Unlike browser-based tools, Nebula is a native Windows app. It starts instantly and handles
+                            thousands of nodes with zero lag.
+                        </p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="text-4xl mb-6">🔒</div>
+                        <h3 class="text-2xl font-bold text-white mb-4">Local-First</h3>
+                        <p class="opacity-60 leading-relaxed">
+                            All your data stays on your machine in the custom .neb format. Maximum privacy, minimum
+                            fuss.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Use Cases -->
+        <section class="py-32 bg-white/[0.02]">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="grid lg:grid-cols-2 gap-20 items-center">
+                    <div>
+                        <h2 class="text-4xl lg:text-5xl font-bold text-white mb-8">Built for work.</h2>
+                        <div class="space-y-8">
+                            <div class="flex gap-6">
+                                <div
+                                    class="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+                                    <span class="text-primary tracking-tighter font-bold">01</span>
+                                </div>
+                                <div>
+                                    <h4 class="text-xl font-bold text-white mb-2">Academic Research</h4>
+                                    <p class="opacity-60">Map out complex thesis structures and literature reviews with
+                                        ease.</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-6">
+                                <div
+                                    class="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+                                    <span class="text-primary tracking-tighter font-bold">02</span>
+                                </div>
+                                <div>
+                                    <h4 class="text-xl font-bold text-white mb-2">System Design</h4>
+                                    <p class="opacity-60">Visualize software architecture and database schemas before
+                                        coding.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mockup-frame h-96">
+                        <div class="text-primary animate-pulse font-bold text-lg">Workflow.neb</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Roadmap -->
+        <section id="roadmap" class="py-32">
+            <div class="max-w-4xl mx-auto px-6">
+                <h2 class="text-4xl font-bold text-white mb-16 text-center">Evolution</h2>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <h4 class="font-bold text-white mb-2">v0.0.1 Beta [Current]</h4>
+                        <p class="opacity-60 text-sm italic">Core engine, local file system, node editing.</p>
+                    </div>
+                    <div class="timeline-item opacity-40">
+                        <h4 class="font-bold text-white mb-2">v0.1.0 Arrival</h4>
+                        <p class="opacity-60 text-sm italic">Export to PDF/PNG, custom themes, advanced links.</p>
+                    </div>
+                    <div class="timeline-item opacity-40">
+                        <h4 class="font-bold text-white mb-2">v1.0.0 Stable</h4>
+                        <p class="opacity-60 text-sm italic">Plugin system, collaborative P2P, Infinite canvas.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact/Request -->
+        <section id="request" class="py-32">
+            <div class="max-w-3xl mx-auto px-6 text-center">
+                <div class="bg-white/[0.03] border border-white/10 rounded-[48px] p-12 lg:p-20">
+                    <h2 class="text-4xl font-bold text-white mb-6">Request a Feature</h2>
+                    <p class="opacity-60 mb-12">Nebula is a hobby project. Your feedback shapes its future.</p>
+                    <form id="feature-form" class="space-y-4">
+                        <input type="text" id="feature-name" placeholder="Feature Title"
+                            class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:outline-none focus:border-primary transition-colors"
+                            required>
+                        <textarea id="feature-desc" placeholder="How should it work?" rows="4"
+                            class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:outline-none focus:border-primary transition-colors"
+                            required></textarea>
+                        <button type="submit" class="btn btn-primary btn-block h-16 rounded-2xl text-lg font-bold">Send
+                            Request</button>
+                    </form>
+                    <div id="form-success" class="hidden mt-8 text-primary font-bold animate-bounce">Request sent to the
+                        cloud!</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="py-20 border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between gap-12 mb-12">
+                <div class="max-w-sm">
+                    <h4 class="text-2xl font-bold text-white mb-4">Nebula</h4>
+                    <p class="text-sm opacity-40 leading-relaxed uppercase tracking-wider font-bold">
+                        A Senior Developer's Personal Project. <br>
+                        Minimalist. Privacy-First. Free.
+                    </p>
+                </div>
+                <div
+                    class="p-6 rounded-2xl border border-red-500/10 bg-red-500/[0.02] text-xs text-red-200/40 max-w-md">
+                    <strong>Legal:</strong> This is a hobby project. Licensed for personal use only. Do not redistribute
+                    or sell. Nebula is the property of jobrain1.
+                </div>
+            </div>
+            <div class="text-center pt-12 border-t border-white/5">
+                <p class="text-[10px] opacity-20 uppercase tracking-[0.4em]">&copy; 2026 Nebula Project</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
